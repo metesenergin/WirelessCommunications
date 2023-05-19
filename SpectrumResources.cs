@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    public static class SpectrumResources
+    public class SpectrumResources
     {
-        public static string Channel { get; set; }
+        public string Channel { get; set; }
     }
 }

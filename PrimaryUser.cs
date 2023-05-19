@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    public static class PrimaryUser
+    public  class PrimaryUser
     {
-        public static string PrimaryUserStatus { get; set; }
-        public static string PrimaryUserAuctionCount { get; set; }
-        public static string PrimaryUserID { get; set; }
-        public static string PrimaryUserWallet { get; set; }
-        public static string PrimaryUserReputationScore { get; set; }
-        public static string PrimaryUserSuccessfulAuctionCount { get; set; }
-        public static string ResponseIsAppropriate { get; set; }
-        public static string AppropriateResponseCount { get; set; }
-        public static string TotalRequestCount { get; set; }
-        public static string AvailableSpectrumKHz { get; set; }
-        public static string TotalSpectrumKHz { get; set; }
-        public static string CreateUser(string id)
+        public  string PrimaryUserStatus { get; set; }
+        public  string PrimaryUserAuctionCount { get; set; }
+        public  string PrimaryUserID { get; set; }
+        public  string PrimaryUserWallet { get; set; }
+        public  string PrimaryUserReputationScore { get; set; }
+        public  string PrimaryUserSuccessfulAuctionCount { get; set; }
+        public  string ResponseIsAppropriate { get; set; }
+        public  string AppropriateResponseCount { get; set; }
+        public  string TotalRequestCount { get; set; }
+        public  string AvailableSpectrumKHz { get; set; }
+        public  string TotalSpectrumKHz { get; set; }
+        public  string CreateUser(string id)
         {
             string result="";
 
@@ -29,7 +29,7 @@ namespace SpectrumSharing
             return result;
         }
 
-        public static string UpdateWallet(string coinAmount)
+        public  string UpdateWallet(string coinAmount)
         {
             string result="";
 

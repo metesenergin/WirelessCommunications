@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    public static class Auction
+    public class Auction
     {
 
-        public static string TimeStamp { get; set; }
+        public string TimeStamp { get; set; }
 
-        public static string LogType = "0";
-        public static string AuctionNo { get; set; }
-        public static string AuctionChannel { get; set; }
-        public static string AuctionChannelBandwidth { get; set; }
-        public static string AuctionPrice { get; set; }
-       
+        public string LogType = "0";
+        public string AuctionNo { get; set; }
+        public string AuctionChannel { get; set; }
+        public string AuctionChannelBandwidth { get; set; }
+        public string AuctionPrice { get; set; }
+
     }
 }

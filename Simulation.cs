@@ -112,14 +112,7 @@ namespace SpectrumSharing
 
         private void LoadAuctionValuesToUI(Auction auction)
         {
-            //Auction
-            //label1.Text = "TimeStamp";
-            //label2.Text = "LogType";
-            //label3.Text = "AuctionNo";
-            //label4.Text = "AuctionChannel";
-            //label5.Text = "AuctionChannelBandwidth";
-            //label6.Text = "AuctionPrice";
-
+           
             textBoxTimeStamp.Text = auction.TimeStamp;
             textBoxLogType.Text = auction.LogType;
             textBoxAuctionNo.Text = auction.AuctionNo;
@@ -159,7 +152,6 @@ namespace SpectrumSharing
                 parametersAndValues[i, 1] = table.Rows[0][i].ToString();
                 i++;
             }
-
             //Auction
             Auction auction = new Auction();
             auction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table,"TimeStamp"));
@@ -169,22 +161,25 @@ namespace SpectrumSharing
             auction.AuctionPrice = GetPriceOfAuction(auction.AuctionChannelBandwidth);
             LoadAuctionValuesToUI(auction);
 
-            
+            //PU
             PrimaryUser primaryUser = new PrimaryUser();
             primaryUser.TotalSpectrumKHz = "540";
             primaryUser.AvailableSpectrumKHz = GetAvailableSpectrum(table);
             primaryUser.PrimaryUserAuctionCount= (int.Parse(GetValueByColumnName(table, "PrimaryUserAuctionCount")) + 1).ToString();
             primaryUser.PrimaryUserID = "1111";
-            primaryUser.PrimaryUserWallet=(float.Parse(GetValueByColumnName(table, "PrimaryUserWallet")+)
-
-
-            SecondaryUser[] secondaryUser = new SecondaryUser[67];
+            
+            //After Auction
+            primaryUser.PrimaryUserWallet = GetValueByColumnName(table, "PrimaryUserWallet");
+            primaryUser.AppropriateResponseCount = "";
+            primaryUser.ResponseIsAppropriate = "";
+            primaryUser.PrimaryUserStatus = "";
+            primaryUser.TotalRequestCount = "";
+            primaryUser.PrimaryUserSuccessfulAuctionCount = "";
+            primaryUser.PrimaryUserReputationScore = "";
 
             SpectrumResources[] channels = new SpectrumResources[57];
-
-           // BlockChain.Mine()
-
-           
+            //SU
+            SecondaryUser[] secondaryUser = new SecondaryUser[67];
 
         }
     }

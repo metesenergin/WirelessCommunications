@@ -20,24 +20,8 @@ namespace SpectrumSharing
         public  string TotalRequestCount { get; set; }
         public  string AvailableSpectrumKHz { get; set; }
         public  string TotalSpectrumKHz { get; set; }
-        public  string CreateUser(string id)
-        {
-            string result="";
-
-            // Update database for user ID return result
-
-            return result;
-        }
-
-        public  string UpdateWallet(string coinAmount)
-        {
-            string result="";
-
-            // Update database for user ID return result
-
-            return result;
-        }
-
+        
+       
     }
 
    

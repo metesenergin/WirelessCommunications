@@ -96,11 +96,14 @@ namespace SpectrumSharing
                 return "1.0";
         }
 
-        private string SetNewTimeStamp(string timeStampOld)
+        private string SetNewTimeStamp(string timeStampOld, string type)
         {
 
             DateTime timestamp = DateTime.ParseExact(timeStampOld, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
             DateTime incrementedTimestamp = timestamp.AddMinutes(1);
+            if (type == "t")
+                incrementedTimestamp = timestamp.AddMinutes(2);
+
             string incrementedTimestampString = incrementedTimestamp.ToString("yyyy-MM-ddTHH:mm:ss");
 
 
@@ -143,10 +146,10 @@ namespace SpectrumSharing
 
         }
 
-        private void GetInfoAndGenerateAnEvent()
+        private void GetInfoAndGenerateAnEvent(bool useReputation)
         {
 
-            DataTable table = Queries.SelectLatestRow();
+            DataTable table = Queries.SelectLatestRow(useReputation);
             dataGridView1.DataSource = table;
             string[,] parametersAndValues = new string[548, 2];
             int i = 0;
@@ -160,7 +163,7 @@ namespace SpectrumSharing
             }
             //Auction
             Auction auction = new Auction();
-            auction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table, "TimeStamp"));
+            auction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table, "TimeStamp"), "a");
             auction.AuctionNo = (int.Parse(GetValueByColumnName(table, "AuctionNo")) + 1).ToString();
             auction.AuctionChannel = GetFirstAvailableChannel(table);
             auction.AuctionChannelBandwidth = GetBandWidthOfChannel(auction.AuctionChannel);
@@ -226,7 +229,7 @@ namespace SpectrumSharing
                 secondaryUsers[j].WalletUser = GetValueByColumnName(table, "WalletUser" + (j + 1).ToString());
                 secondaryUsers[j].AuctionCountUser = GetValueByColumnName(table, "AuctionCountUser" + (j + 1).ToString());
             }
-            for(int j = 0; j < statusNOKList.Length; j++)
+            for (int j = 0; j < statusNOKList.Length; j++)
             {
                 for (int k = 0; k < 57; k++)
                     if (channels[k].AllocationStatus == statusNOKList[j])
@@ -238,7 +241,7 @@ namespace SpectrumSharing
             for (int j = 0; j < statusOKCount; j++)
             {
                 secondaryUsers[int.Parse(statusOKList[j]) - 1].StatusUser = "1";
-                
+
             }
 
             for (int j = 0; j < bidRequestCount; j++)
@@ -282,14 +285,19 @@ namespace SpectrumSharing
                 //After Auction
                 //decide winner update scores 
                 //Insert Auction into Event
-                string InsertCommand = Queries.insertQuery;
-                InsertCommand = InsertCommand.Replace("<TimeStamp>", "'"+auction.TimeStamp+"'");
+                string InsertCommand;
+                if (!useReputation)
+                    InsertCommand = Queries.insertQuery;
+                else
+                    InsertCommand = Queries.insertQueryUseReputation;
+
+                InsertCommand = InsertCommand.Replace("<TimeStamp>", "'" + auction.TimeStamp + "'");
                 InsertCommand = InsertCommand.Replace("<LogType>", auction.LogType);
-                InsertCommand = InsertCommand.Replace("<TransactionID>", "null");
-                InsertCommand = InsertCommand.Replace("<AllocatedChannel>", "null");
-                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserID>", "null");
-                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserWallet>", "null");
-                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserReputationScore>", "null");
+                InsertCommand = InsertCommand.Replace("<TransactionID>", "0");
+                InsertCommand = InsertCommand.Replace("<AllocatedChannel>", "0");
+                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserID>", "0");
+                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserWallet>", "0");
+                InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserReputationScore>", "0");
                 InsertCommand = InsertCommand.Replace("<PrimaryUserID>", primaryUser.PrimaryUserID);
                 InsertCommand = InsertCommand.Replace("<PrimaryUserWallet>", primaryUser.PrimaryUserWallet);
                 InsertCommand = InsertCommand.Replace("<PrimaryUserReputationScore>", primaryUser.PrimaryUserReputationScore);
@@ -308,8 +316,8 @@ namespace SpectrumSharing
 
                 for (int j = 1; j < 68; j++)
                 {
-                    InsertCommand = InsertCommand.Replace("<AuctionCountUser" + j.ToString() + ">", secondaryUsers[j-1].AuctionCountUser);
-                    InsertCommand = InsertCommand.Replace("<IsBiddingUser" + j.ToString() + ">", secondaryUsers[j-1].IsBiddingUser);
+                    InsertCommand = InsertCommand.Replace("<AuctionCountUser" + j.ToString() + ">", secondaryUsers[j - 1].AuctionCountUser);
+                    InsertCommand = InsertCommand.Replace("<IsBiddingUser" + j.ToString() + ">", secondaryUsers[j - 1].IsBiddingUser);
                     InsertCommand = InsertCommand.Replace("<IsInPoolUser" + j.ToString() + ">", secondaryUsers[j - 1].IsInPoolUser);
                     InsertCommand = InsertCommand.Replace("<ScoreUser" + j.ToString() + ">", secondaryUsers[j - 1].ScoreUser);
                     InsertCommand = InsertCommand.Replace("<StatusUser" + j.ToString() + ">", secondaryUsers[j - 1].StatusUser);
@@ -318,12 +326,12 @@ namespace SpectrumSharing
                     if (j < 58)
                         InsertCommand = InsertCommand.Replace("<Channel" + j.ToString() + ">", channels[j - 1].AllocationStatus);
                 }
-                File.AppendAllText(@"C:\Users\Administrator\Desktop\TEL505E-Progress2\query.txt", InsertCommand);
+                File.AppendAllText(@"C:\Users\Administrator\Desktop\TEL505E-Progress2\a.txt", InsertCommand);
 
                 Queries.InsertEvent(InsertCommand);
                 primaryUser.PrimaryUserReputationScore = ReputationScoring.CalculateReputationScorePrimaryUser(primaryUser);
                 foreach (SecondaryUser secondaryUser in secondaryUsers)
-                    secondaryUser.ScoreUser = ReputationScoring.CalculateReputationScoreSecondaryUser(secondaryUser);
+                    secondaryUser.ScoreUser = ReputationScoring.CalculateReputationScoreSecondaryUser(secondaryUser,primaryUser,auction);
 
                 for (int j = 0; j < successorCount; j++)
                 {
@@ -336,23 +344,69 @@ namespace SpectrumSharing
                     float AddtoPrimaryUsersWallet = AuctionPrice * contributionPercentage;
                     float withDrawFromSecondaryUser = AddtoPrimaryUsersWallet;
 
-                    secondaryUsers[int.Parse(winnerSU[j])].WalletUser = (WalletOfSecondaryUser + AddtoSecondaryUsersWallet).ToString();
-                    primaryUser.PrimaryUserWallet = (WalletOfPrimaryUser + AddtoPrimaryUsersWallet).ToString();
+                    secondaryUsers[int.Parse(winnerSU[j])].WalletUser = (WalletOfSecondaryUser + AddtoSecondaryUsersWallet).ToString("0.00", CultureInfo.InvariantCulture);
+                    primaryUser.PrimaryUserWallet = (WalletOfPrimaryUser + AddtoPrimaryUsersWallet).ToString("0.00", CultureInfo.InvariantCulture);
                     WalletOfSecondaryUser = float.Parse(secondaryUsers[int.Parse(winnerSU[j])].WalletUser);
-                    if (WalletOfSecondaryUser > withDrawFromSecondaryUser)
+                    if (WalletOfSecondaryUser >= withDrawFromSecondaryUser)
                     {
                         //create a transaction log with log type 1
                         secondaryUsers[int.Parse(winnerSU[j])].SuccessfulAuctionCountUser = (int.Parse(secondaryUsers[int.Parse(winnerSU[j])].SuccessfulAuctionCountUser) + 1).ToString();
                         Transactions transaction = new Transactions();
                         transaction.TransactionID = (int.Parse(GetValueByColumnName(table, "TransactionID")) + 1).ToString();
-                        transaction.TimeStamp = SetNewTimeStamp(auction.TimeStamp);
+                        transaction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table, "TimeStamp"), "t");
                         transaction.WinnerSecondaryUserID = winnerSU[j];
                         transaction.WinnerSecondaryUserWallet = secondaryUsers[int.Parse(winnerSU[j])].WalletUser;
                         transaction.WinnerSecondaryUserReputationScore = secondaryUsers[int.Parse(winnerSU[j])].ScoreUser;
                         transaction.PrimaryUserWallet = primaryUser.PrimaryUserWallet;
                         transaction.AllocatedChannel = auction.AuctionChannel;
-                        //Insert Transaction
                         channels[int.Parse(auction.AuctionChannel)].AllocationStatus = winnerSU[j];
+
+                        string InsertTransactionCommand;
+                        if (!useReputation)
+                            InsertTransactionCommand = Queries.insertQuery;
+                        else
+                            InsertTransactionCommand = Queries.insertQueryUseReputation;
+
+
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<TimeStamp>", "'" + transaction.TimeStamp + "'");
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<LogType>", transaction.LogType);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<TransactionID>", transaction.TransactionID);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AllocatedChannel>", transaction.AllocatedChannel);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<WinnerSecondaryUserID>", transaction.WinnerSecondaryUserID);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<WinnerSecondaryUserWallet>", transaction.WinnerSecondaryUserWallet);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<WinnerSecondaryUserReputationScore>", transaction.WinnerSecondaryUserReputationScore);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserID>", primaryUser.PrimaryUserID);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserWallet>", transaction.PrimaryUserWallet);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserReputationScore>", primaryUser.PrimaryUserReputationScore);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserStatus>", primaryUser.PrimaryUserStatus);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionNo>", auction.AuctionNo);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionChannel>", auction.AuctionChannel);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionChannelBandwidth>", auction.AuctionChannelBandwidth);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserAuctionCount>", primaryUser.PrimaryUserAuctionCount);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserSuccessfulAuctionCount>", primaryUser.PrimaryUserSuccessfulAuctionCount);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<ResponseIsAppropriate>", primaryUser.ResponseIsAppropriate);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AppropriateResponseCount>", primaryUser.AppropriateResponseCount);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<TotalRequestCount>", primaryUser.TotalRequestCount);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AvailableSpectrumKHz>", primaryUser.AvailableSpectrumKHz);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<TotalSpectrumKHz>", primaryUser.TotalSpectrumKHz);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionPrice>", auction.AuctionPrice);
+
+                        for (int z = 1; z < 68; z++)
+                        {
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionCountUser" + z.ToString() + ">", secondaryUsers[z - 1].AuctionCountUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<IsBiddingUser" + z.ToString() + ">", secondaryUsers[z - 1].IsBiddingUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<IsInPoolUser" + z.ToString() + ">", secondaryUsers[z - 1].IsInPoolUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<ScoreUser" + z.ToString() + ">", secondaryUsers[z - 1].ScoreUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<StatusUser" + z.ToString() + ">", secondaryUsers[z - 1].StatusUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<SuccessfulAuctionCountUser" + z.ToString() + ">", secondaryUsers[z - 1].SuccessfulAuctionCountUser);
+                            InsertTransactionCommand = InsertTransactionCommand.Replace("<WalletUser" + z.ToString() + ">", secondaryUsers[z - 1].WalletUser);
+                            if (z < 58)
+                                InsertTransactionCommand = InsertTransactionCommand.Replace("<Channel" + z.ToString() + ">", channels[z - 1].AllocationStatus);
+                        }
+
+                        File.AppendAllText(@"C:\Users\Administrator\Desktop\TEL505E-Progress2\b.txt", InsertTransactionCommand);
+
+                        Queries.InsertEvent(InsertTransactionCommand);
                         break;
                     }
                 }
@@ -361,7 +415,14 @@ namespace SpectrumSharing
 
         private void button1_Click(object sender, EventArgs e)
         {
-            GetInfoAndGenerateAnEvent();
+            for (int i = 0; i < 2; i++)
+            {
+                GetInfoAndGenerateAnEvent(true);
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                GetInfoAndGenerateAnEvent(false);
+            }
         }
 
 

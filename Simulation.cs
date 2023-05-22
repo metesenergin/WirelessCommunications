@@ -299,7 +299,7 @@ namespace SpectrumSharing
                 InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserWallet>", "0");
                 InsertCommand = InsertCommand.Replace("<WinnerSecondaryUserReputationScore>", "0");
                 InsertCommand = InsertCommand.Replace("<PrimaryUserID>", primaryUser.PrimaryUserID);
-                InsertCommand = InsertCommand.Replace("<PrimaryUserWallet>", primaryUser.PrimaryUserWallet);
+                InsertCommand = InsertCommand.Replace("<PrimaryUserWallet>", primaryUser.PrimaryUserWallet.Replace(',','.'));
                 InsertCommand = InsertCommand.Replace("<PrimaryUserReputationScore>", primaryUser.PrimaryUserReputationScore);
                 InsertCommand = InsertCommand.Replace("<PrimaryUserStatus>", primaryUser.PrimaryUserStatus);
                 InsertCommand = InsertCommand.Replace("<AuctionNo>", auction.AuctionNo);
@@ -357,7 +357,7 @@ namespace SpectrumSharing
                         transaction.WinnerSecondaryUserID = winnerSU[j];
                         transaction.WinnerSecondaryUserWallet = secondaryUsers[int.Parse(winnerSU[j])].WalletUser;
                         transaction.WinnerSecondaryUserReputationScore = secondaryUsers[int.Parse(winnerSU[j])].ScoreUser;
-                        transaction.PrimaryUserWallet = primaryUser.PrimaryUserWallet;
+                        transaction.PrimaryUserWallet = primaryUser.PrimaryUserWallet.Replace(',','.');
                         transaction.AllocatedChannel = auction.AuctionChannel;
                         channels[int.Parse(auction.AuctionChannel)].AllocationStatus = winnerSU[j];
 
@@ -376,7 +376,7 @@ namespace SpectrumSharing
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<WinnerSecondaryUserWallet>", transaction.WinnerSecondaryUserWallet);
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<WinnerSecondaryUserReputationScore>", transaction.WinnerSecondaryUserReputationScore);
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserID>", primaryUser.PrimaryUserID);
-                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserWallet>", transaction.PrimaryUserWallet);
+                        InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserWallet>", transaction.PrimaryUserWallet.Replace(',','.'));
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserReputationScore>", primaryUser.PrimaryUserReputationScore);
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<PrimaryUserStatus>", primaryUser.PrimaryUserStatus);
                         InsertTransactionCommand = InsertTransactionCommand.Replace("<AuctionNo>", auction.AuctionNo);

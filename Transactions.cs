@@ -18,7 +18,6 @@ namespace SpectrumSharing
         public string WinnerSecondaryUserID { get; set; }
         public string WinnerSecondaryUserWallet { get; set; }
         public string WinnerSecondaryUserReputationScore { get; set; }
-        public string PrimaryUserID { get; set; }
         public string PrimaryUserWallet { get; set; }
        
        

@@ -1120,13 +1120,12 @@ namespace SpectrumSharing
         public static string selectLatestRow = @"  SELECT TOP(1) *
                                             FROM [SpectrumSharingDB].[dbo].[TransactionLog] WITH (SNAPSHOT)
                                             ORDER BY TimeStamp desc";
-        public static int InsertEvent(string [,] parametersAndValues)
+        public static int InsertEvent(string insertCommand)
         {
-            string insertQueryCopy=insertQuery;
+            string insertQueryCopy=insertCommand;
 
-                for (int i = 0; i < 548; i++)
-                    insertQueryCopy = insertQueryCopy.Replace("<" + parametersAndValues[i,0] +">", parametersAndValues[i,1]);
             
+                
             int affectedRowCount = 0;
             using (SqlConnection conn = new(connectDB))
             {

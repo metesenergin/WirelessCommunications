@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    internal class BlockChain
+    public static class BlockChain
     {
-        public static string [] Mine(string[]poolList,int seed)
+        public static string [] Mine(string[] List,int seed)
         {
 
-                int sizeofpool=poolList.Length;
+                int sizeofpool=List.Length;
                 string[] shuffledlist = new string[sizeofpool];
                 var indicesList = new List<int>(sizeofpool);
 
@@ -29,10 +29,65 @@ namespace SpectrumSharing
 
                 for (int i = 0; i < sizeofpool; i++)
                 {
-                    shuffledlist[i] = poolList[shuffled[i]];
+                    shuffledlist[i] = List[shuffled[i]];
                 }
                 return shuffledlist;
             
+        }
+
+        public static string[] RandomStatus(string[] List, int seed)
+        {
+
+            int sizeofpool = List.Length;
+            string[] shuffledlist = new string[sizeofpool];
+            var indicesList = new List<int>(sizeofpool);
+
+            for (int i = 0; i < sizeofpool; i++)
+                indicesList.Add(i);
+
+            var random = new Random(seed);
+            var shuffled = new List<int>(sizeofpool);
+            for (int i = 0; i < sizeofpool; i++)
+            {
+                var randomElementInList = random.Next(0, indicesList.Count - 1);
+                shuffled.Add(indicesList[randomElementInList]);
+                indicesList.Remove(indicesList[randomElementInList]);
+            }
+
+            for (int i = 0; i < sizeofpool; i++)
+            {
+                shuffledlist[i] = List[shuffled[i]];
+            }
+            return shuffledlist;
+
+        }
+
+        public static string[] RandomIsBidding(string[] List, int seed)
+        {
+
+            int sizeofpool = List.Length;
+            
+            string[] shuffledlist = new string[sizeofpool];
+            var indicesList = new List<int>(sizeofpool);
+
+            for (int i = 0; i < sizeofpool; i++)
+                indicesList.Add(i);
+
+            var random = new Random(seed);
+            var shuffled = new List<int>(sizeofpool);
+            for (int i = 0; i < sizeofpool; i++)
+            {
+                var randomElementInList = random.Next(0, indicesList.Count - 1);
+                shuffled.Add(indicesList[randomElementInList]);
+                indicesList.Remove(indicesList[randomElementInList]);
+            }
+
+            for (int i = 0; i < sizeofpool; i++)
+            {
+                shuffledlist[i] = List[shuffled[i]];
+            }
+            return shuffledlist;
+
         }
     }
 }

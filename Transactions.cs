@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    public static class Transactions
+    public class Transactions
     {
-        public static string TimeStamp { get; set; }
+        public string TimeStamp { get; set; }
 
-        public static string LogType = "1";
-        public static string TransactionID { get; set; }
-        public static string AllocatedChannel { get; set; }
-        public static string WinnerSecondaryUserID { get; set; }
-        public static string WinnerSecondaryUserWallet { get; set; }
-        public static string WinnerSecondaryUserReputationScore { get; set; }
-        public static string PrimaryUserID { get; set; }
-        public static string PrimaryUserWallet { get; set; }
-        public static string PrimaryUserReputationScore { get; set; }
-
+        public string LogType = "1";
+        public string TransactionID { get; set; }
+        public string AllocatedChannel { get; set; }
+        public string WinnerSecondaryUserID { get; set; }
+        public string WinnerSecondaryUserWallet { get; set; }
+        public string WinnerSecondaryUserReputationScore { get; set; }
+        public string PrimaryUserID { get; set; }
+        public string PrimaryUserWallet { get; set; }
+       
+       
     }
 }

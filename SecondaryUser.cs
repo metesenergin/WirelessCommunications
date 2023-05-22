@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    internal class SecondaryUser
+    public class SecondaryUser
     {
-        public static string IsBiddingUser { get; set; }
-        public static string IsInPoolUser { get; set; }
-        public static string ScoreUser { get; set; }
-        public static string StatusUser { get; set; }
-        public static string AuctionCountUser { get; set; }
-        public static string SuccessfulAuctionCountUser { get; set; }
-        public static string WalletUser { get; set; }
+        public string ID { get; set; }
+        public string IsBiddingUser { get; set; }
+        public string IsInPoolUser { get; set; }
+        public string ScoreUser { get; set; }
+        public string StatusUser { get; set; }
+        public string AuctionCountUser { get; set; }
+        public string SuccessfulAuctionCountUser { get; set; }
+        public string WalletUser { get; set; }
 
     }
 }

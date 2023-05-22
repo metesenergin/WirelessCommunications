@@ -1123,15 +1123,11 @@ namespace SpectrumSharing
         public static int InsertEvent(string [,] parametersAndValues)
         {
             string insertQueryCopy=insertQuery;
-           
-          
+
                 for (int i = 0; i < 548; i++)
                     insertQueryCopy = insertQueryCopy.Replace("<" + parametersAndValues[i,0] +">", parametersAndValues[i,1]);
             
-
             int affectedRowCount = 0;
-            
-
             using (SqlConnection conn = new(connectDB))
             {
                 conn.Open();
@@ -1139,9 +1135,7 @@ namespace SpectrumSharing
                 using SqlCommand cmd = new(insertQueryCopy, conn);
                 affectedRowCount = cmd.ExecuteNonQuery();
             }
-
             return affectedRowCount;
-            
         }
 
         public static DataTable SelectLatestRow()
@@ -1154,7 +1148,6 @@ namespace SpectrumSharing
             adapter.Fill(result);
             connection.Close();
             return result;
-           
         }
     }
 }

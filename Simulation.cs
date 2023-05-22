@@ -34,7 +34,7 @@ namespace SpectrumSharing
             //PrimaryUser
             label15.Text = "PrimaryUserStatus";
             label16.Text = "PrimaryUserAuctionCount";
-            
+
             label20.Text = "PrimaryUserSuccessfulAuctionCount";
             label21.Text = "ResponseIsAppropriate";
             label22.Text = "AppropriateResponseCount";
@@ -52,7 +52,7 @@ namespace SpectrumSharing
             label32.Text = "WalletUser";
         }
 
-        private string GetValueByColumnName(DataTable dataTable,string columnName)
+        private string GetValueByColumnName(DataTable dataTable, string columnName)
         {
             DataRow row = dataTable.Rows[0];
 
@@ -67,18 +67,18 @@ namespace SpectrumSharing
         }
         private string GetFirstAvailableChannel(DataTable dataTable)
         {
-            for(int i= 1; i <= 57; i++)
+            for (int i = 1; i <= 57; i++)
             {
                 string columnName = "Channel" + i.ToString();
-                string value = GetValueByColumnName(dataTable,columnName);
-                if(value == "0")
-                 return i.ToString();
+                string value = GetValueByColumnName(dataTable, columnName);
+                if (value == "0")
+                    return i.ToString();
             }
             return "0";
         }
         private string GetBandWidthOfChannel(string auctionChannel)
         {
-            int channelNo=int.Parse(auctionChannel);
+            int channelNo = int.Parse(auctionChannel);
 
             if (channelNo < 41)
                 return "5";
@@ -90,7 +90,7 @@ namespace SpectrumSharing
         {
             int channelNo = int.Parse(bandWidth);
 
-            if (channelNo ==5)
+            if (channelNo == 5)
                 return "0.4";
             else
                 return "1.0";
@@ -98,7 +98,7 @@ namespace SpectrumSharing
 
         private string SetNewTimeStamp(string timeStampOld)
         {
-            
+
             DateTime timestamp = DateTime.ParseExact(timeStampOld, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
             // Increment the timestamp by one minute
@@ -112,13 +112,13 @@ namespace SpectrumSharing
 
         private void LoadAuctionValuesToUI(Auction auction)
         {
-           
+
             textBoxTimeStamp.Text = auction.TimeStamp;
             textBoxLogType.Text = auction.LogType;
             textBoxAuctionNo.Text = auction.AuctionNo;
             textBoxAuctionChannel.Text = auction.AuctionChannel;
             textBoxAuctionChannelBandwidth.Text = auction.AuctionChannelBandwidth;
-            textBoxAuctionPrice.Text=auction.AuctionPrice;
+            textBoxAuctionPrice.Text = auction.AuctionPrice;
 
         }
         private string GetAvailableSpectrum(DataTable dataTable)
@@ -137,26 +137,37 @@ namespace SpectrumSharing
             return availableSpectrum.ToString();
 
         }
-
-        private void button1_Click(object sender, EventArgs e)
+        private string GetSpectrumInfo(DataTable dataTable, int channelNo)
         {
+            string columnName = "Channel" + channelNo.ToString();
+            string value = GetValueByColumnName(dataTable, columnName);
+
+            return value;
+
+        }
+
+        private Event GetInfoAndGenerateAnEvent()
+        {
+            AuctionEvent auctionEvent=new AuctionEvent();
+            TransactionEvent transactionEvent = new TransactionEvent();
+
             DataTable table = Queries.SelectLatestRow();
-            dataGridView1.DataSource=table;
-            string [,] parametersAndValues = new string[548,2];
+            dataGridView1.DataSource = table;
+            string[,] parametersAndValues = new string[548, 2];
             int i = 0;
 
             //Load Latest Values
-            foreach(DataColumn column in table.Columns)
+            foreach (DataColumn column in table.Columns)
             {
-                parametersAndValues[i,0]=column.ColumnName;
+                parametersAndValues[i, 0] = column.ColumnName;
                 parametersAndValues[i, 1] = table.Rows[0][i].ToString();
                 i++;
             }
             //Auction
             Auction auction = new Auction();
-            auction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table,"TimeStamp"));
-            auction.AuctionNo = (int.Parse(GetValueByColumnName(table, "AuctionNo"))+1).ToString();
-            auction.AuctionChannel= GetFirstAvailableChannel(table);
+            auction.TimeStamp = SetNewTimeStamp(GetValueByColumnName(table, "TimeStamp"));
+            auction.AuctionNo = (int.Parse(GetValueByColumnName(table, "AuctionNo")) + 1).ToString();
+            auction.AuctionChannel = GetFirstAvailableChannel(table);
             auction.AuctionChannelBandwidth = GetBandWidthOfChannel(auction.AuctionChannel);
             auction.AuctionPrice = GetPriceOfAuction(auction.AuctionChannelBandwidth);
             LoadAuctionValuesToUI(auction);
@@ -165,22 +176,160 @@ namespace SpectrumSharing
             PrimaryUser primaryUser = new PrimaryUser();
             primaryUser.TotalSpectrumKHz = "540";
             primaryUser.AvailableSpectrumKHz = GetAvailableSpectrum(table);
-            primaryUser.PrimaryUserAuctionCount= (int.Parse(GetValueByColumnName(table, "PrimaryUserAuctionCount")) + 1).ToString();
+            primaryUser.PrimaryUserAuctionCount = (int.Parse(GetValueByColumnName(table, "PrimaryUserAuctionCount")) + 1).ToString();
             primaryUser.PrimaryUserID = "1111";
-            
-            //After Auction
+            primaryUser.PrimaryUserStatus = "1";
             primaryUser.PrimaryUserWallet = GetValueByColumnName(table, "PrimaryUserWallet");
-            primaryUser.AppropriateResponseCount = "";
-            primaryUser.ResponseIsAppropriate = "";
-            primaryUser.PrimaryUserStatus = "";
-            primaryUser.TotalRequestCount = "";
-            primaryUser.PrimaryUserSuccessfulAuctionCount = "";
-            primaryUser.PrimaryUserReputationScore = "";
+            primaryUser.PrimaryUserReputationScore = GetValueByColumnName(table, "PrimaryUserReputationScore");
 
+            //Fill 57 Channels Info
             SpectrumResources[] channels = new SpectrumResources[57];
-            //SU
-            SecondaryUser[] secondaryUser = new SecondaryUser[67];
+            int channelNo = 1;
+            for (int j = 0; j < channels.Length; j++)
+            {
+                channels[j] = new SpectrumResources(); // Create an instance of SpectrumResources
+
+                channels[j].AllocationStatus = GetSpectrumInfo(table, channelNo);
+                channels[j].Bandwidth = GetBandWidthOfChannel(channelNo.ToString());
+                channelNo++;
+            }
+
+
+            //Generate Secondary Users
+            SecondaryUser[] secondaryUsers = new SecondaryUser[67];
+            string[] ListOfSU = new string[67];
+            for (int j = 0; j < secondaryUsers.Length; j++)
+            {
+                secondaryUsers[j] = new SecondaryUser(); // Create an instance of SecondaryUser
+
+                secondaryUsers[j].ID = (j + 1).ToString();
+                ListOfSU[j] = secondaryUsers[j].ID;
+            }
+
+            var random = new Random(int.Parse(auction.AuctionNo) + 1);
+            int statusOKCount = random.Next(50, 67);
+            int bidRequestCount = random.Next(40, statusOKCount);
+            int successorCount = random.Next(0, 10);
+            int inappropriateResponseCount = random.Next(0, 2);
+
+
+            //Assign Random Status
+            string[] randomStatusList = BlockChain.RandomStatus(ListOfSU, int.Parse(auction.AuctionNo));
+            string[] statusOKList = randomStatusList.TakeLast(statusOKCount).ToArray();
+            string[] randomIsBiddingList = BlockChain.RandomIsBidding(statusOKList, int.Parse(auction.AuctionNo) + 1);
+            string[] biddingPoolAll = randomIsBiddingList.TakeLast(bidRequestCount).ToArray();
+            string[] biddingPoolOnlyAppropriateResponse = biddingPoolAll.TakeLast(bidRequestCount - inappropriateResponseCount).ToArray();
+
+            for (int j = 0; j < 67; j++)
+            {
+                secondaryUsers[j].StatusUser = GetValueByColumnName(table, "StatusUser" + (j + 1).ToString());
+                secondaryUsers[j].IsBiddingUser = "0";
+                secondaryUsers[j].IsInPoolUser = "0";
+                secondaryUsers[j].SuccessfulAuctionCountUser = GetValueByColumnName(table, "SuccessfulAuctionCountUser" + (j + 1).ToString());
+                secondaryUsers[j].ScoreUser = GetValueByColumnName(table, "ScoreUser" + (j + 1).ToString());
+                secondaryUsers[j].WalletUser = GetValueByColumnName(table, "WalletUser" + (j + 1).ToString());
+            }
+
+            for (int j = 0; j < statusOKCount; j++)
+            {
+                secondaryUsers[int.Parse(statusOKList[j]) - 1].StatusUser = "1";
+            }
+
+            for (int j = 0; j < bidRequestCount; j++)
+            {
+                secondaryUsers[int.Parse(biddingPoolAll[j]) - 1].IsBiddingUser = "1";
+            }
+
+            for (int j = 0; j < biddingPoolOnlyAppropriateResponse.Length; j++)
+                secondaryUsers[int.Parse(biddingPoolOnlyAppropriateResponse[j]) - 1].IsInPoolUser = "1";
+
+            List<string> list = new List<string>();
+            for (int j = 0; j < 67; j++)
+            {
+                if (secondaryUsers[j].IsInPoolUser == "1")
+                {
+                    list.Add((j + 1).ToString());
+                    secondaryUsers[j].AuctionCountUser = (int.Parse(GetValueByColumnName(table, "AuctionCountUser" + (j + 1).ToString())) + 1).ToString();
+                }
+
+            }
+
+            string[] biddingPoolFinal = list.ToArray();
+
+            string[] winnerSU = BlockChain.Mine(biddingPoolFinal, int.Parse(auction.AuctionNo) + 2).Take(successorCount).ToArray();
+
+            if (successorCount > 0)
+                primaryUser.PrimaryUserSuccessfulAuctionCount = (int.Parse(GetValueByColumnName(table, "PrimaryUserSuccessfulAuctionCount")) + 1).ToString();
+            else if (successorCount == 0)
+                primaryUser.PrimaryUserSuccessfulAuctionCount = GetValueByColumnName(table, "PrimaryUserSuccessfulAuctionCount");
+
+            primaryUser.AppropriateResponseCount = biddingPoolOnlyAppropriateResponse.Length.ToString();
+            primaryUser.TotalRequestCount = bidRequestCount.ToString();
+
+            if (inappropriateResponseCount == 0)
+                primaryUser.ResponseIsAppropriate = "1";
+            else
+                primaryUser.ResponseIsAppropriate = "0";
+
+            if (successorCount > 0)
+            {
+                //After Auction
+                //decide winner update scores and wallets
+
+
+                primaryUser.PrimaryUserReputationScore = ReputationScoring.CalculateReputationScorePrimaryUser(primaryUser);
+                foreach (SecondaryUser secondaryUser in secondaryUsers)
+                    secondaryUser.ScoreUser = ReputationScoring.CalculateReputationScoreSecondaryUser(secondaryUser);
+
+
+                //Insert Auction into Event
+                
+
+                for (int j = 0; j < successorCount; j++)
+                {
+                    float WalletOfSecondaryUser = float.Parse(secondaryUsers[int.Parse(winnerSU[j])].WalletUser);
+                    float WalletOfPrimaryUser = float.Parse(primaryUser.PrimaryUserWallet);
+                    float AuctionPrice = float.Parse(auction.AuctionPrice);
+                    float contributionPercentage = (float)(bidRequestCount - inappropriateResponseCount) / bidRequestCount;
+                    float winnersCoefficient = (float)(((bidRequestCount - successorCount) / bidRequestCount) + 1);
+                    float AddtoSecondaryUsersWallet = AuctionPrice * winnersCoefficient;
+                    float AddtoPrimaryUsersWallet = AuctionPrice * contributionPercentage;
+                    float withDrawFromSecondaryUser = AddtoPrimaryUsersWallet;
+
+                    secondaryUsers[int.Parse(winnerSU[j])].WalletUser = (WalletOfSecondaryUser + AddtoSecondaryUsersWallet).ToString();
+                    primaryUser.PrimaryUserWallet = (WalletOfPrimaryUser + AddtoPrimaryUsersWallet).ToString();
+                    WalletOfSecondaryUser = float.Parse(secondaryUsers[int.Parse(winnerSU[j])].WalletUser);
+                    if (WalletOfSecondaryUser > withDrawFromSecondaryUser)
+                    {
+                        //create a transaction log with log type 1
+
+                        Transactions transaction = new Transactions();
+                        transaction.TransactionID = (int.Parse(GetValueByColumnName(table, "TransactionID")) + 1).ToString();
+                        transaction.TimeStamp = SetNewTimeStamp(auction.TimeStamp);
+                        transaction.WinnerSecondaryUserID = winnerSU[j];
+                        transaction.WinnerSecondaryUserWallet = secondaryUsers[int.Parse(winnerSU[j])].WalletUser;
+                        transaction.WinnerSecondaryUserReputationScore = secondaryUsers[int.Parse(winnerSU[j])].ScoreUser;
+                        transaction.PrimaryUserWallet = primaryUser.PrimaryUserWallet;
+                        transaction.AllocatedChannel = auction.AuctionChannel;
+                        //Insert Transaction
+
+                        break;
+                    }
+                }
+            }
+
+            Event eventToReturn = new Event();
+            eventToReturn.auctionEvent = auctionEvent;
+            eventToReturn.transactionEvent=transactionEvent;
 
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            GetInfoAndGenerateAnEvent();
+        }
+
+
+
     }
 }

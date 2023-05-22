@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace SpectrumSharing
 {
-    public class SpectrumResources
+    public class Event
     {
-        public string AllocationStatus { get; set; }
-        public string  Bandwidth { get; set; }
+        public AuctionEvent auctionEvent { get; set; }
+        public TransactionEvent transactionEvent { get; set; }
+
     }
 }
